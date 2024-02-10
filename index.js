@@ -6,7 +6,7 @@ import {
   deleteOneLink,
   getAllLinks,
   getOneLink,
-  updateOneLink,
+  redirectController,
 } from "./controller/linksController.js";
 import dotenv from "dotenv";
 import {
@@ -14,6 +14,7 @@ import {
   deleteOneUser,
   getAllUsers,
   getOneUser,
+  loginUser,
   updateOneUser,
 } from "./controller/userController.js";
 
@@ -29,18 +30,24 @@ app.use(express.json());
 //INITIALIZE DATABASE
 dbInit();
 
-//ROUTES
+// User Routes
 app.get("/health", healthCheck);
 app.post("/register", createUser);
+app.post("/login", loginUser);
+
+// Admin Routes
 app.get("/admin/users/all", getAllUsers);
-app.get("/admin/users/:user_id", getOneUser);
-app.put("/users/:user_id", updateOneUser);
-app.delete("/admin/deleteUser/:user_id", deleteOneUser);
+app.get("/admin/users/", getOneUser);
+app.put("/users", updateOneUser);
+app.delete("/admin/deleteUser", deleteOneUser);
+
+// Links Routes
 app.post("/links", createLink);
 app.get("/links/all", getAllLinks);
 app.get("/links/:link_id", getOneLink);
-app.put("/links/:link_id", updateOneLink);
+// app.put("/links/:link_id", updateOneLink); <- route disabled lol
 app.delete("/links/:link_id", deleteOneLink);
+app.post("/redirect/:shorturl", redirectController);
 
 //PORT
 app.listen(port, () => {

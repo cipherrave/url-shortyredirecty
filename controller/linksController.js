@@ -5,7 +5,8 @@ import { nanoid } from "nanoid";
 export async function createLink(req, res) {
   try {
     const { longurl } = req.body;
-    const { shorturl } = nanoid(10); //doesnt work
+    let generatedShort = nanoid(10);
+    const shorturl = generatedShort;
     const newUrl = await pool.query(
       "INSERT INTO links (longurl, shorturl) VALUES($1, $2) RETURNING *",
       [longurl, shorturl]
@@ -40,22 +41,20 @@ export async function getOneLink(req, res) {
   }
 }
 
-//Update a link
+/*Update a link - Decided to disable this function because it will always be easier to just delete
 export async function updateOneLink(req, res) {
   try {
     const { link_id } = req.params;
     const { longurl } = req.body;
-
     const updatedLink = await pool.query(
       "UPDATE links SET longurl = $1 WHERE link_id= $2",
       [longurl, link_id]
     );
-
     res.json("Link has been updated");
   } catch (err) {
     console.error(err.message);
   }
-}
+}*/
 
 //Delete a link
 export async function deleteOneLink(req, res) {
@@ -68,5 +67,23 @@ export async function deleteOneLink(req, res) {
     res.json("Link has been deleted");
   } catch (err) {
     console.error(err.message);
+  }
+}
+
+//Redirecting
+export async function redirectController(req, res) {
+  try {
+    const { shorturl } = req.params;
+    const longUrlObtain = await pool.query(
+      "SELECT longUrl FROM links WHERE shorturl = $1",
+      [shorturl]
+    );
+
+    const longUrl = longUrlObtain.rows[0].longurl;
+    console.log(longUrl); // output will be just the real url. no headers
+
+    res.redirect(longUrl);
+  } catch (error) {
+    res.status(500).json(error);
   }
 }
