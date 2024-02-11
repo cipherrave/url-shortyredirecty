@@ -25,10 +25,13 @@ export async function createLink(req, res) {
     let generatedShort = nanoid(10);
     const shorturl = generatedShort;
 
+    // Starts visit_count with 0 for each new links created
+    const visit_count = 0;
+
     // Insert details into links table
     const newUrl = await pool.query(
-      "INSERT INTO links (link_id, longurl, shorturl, user_id) VALUES($1, $2, $3, $4) RETURNING *",
-      [link_id, longurl, shorturl, user_id]
+      "INSERT INTO links (link_id, longurl, shorturl, visit_count, user_id) VALUES($1, $2, $3, $4, $5) RETURNING *",
+      [link_id, longurl, shorturl, visit_count, user_id]
     );
 
     // Generate response
@@ -286,7 +289,7 @@ export async function deleteOneLink(req, res) {
   }
 }
 
-//Redirecting
+//Redirecting and visit_counter
 export async function redirectController(req, res) {
   try {
     const { shorturl } = req.params;
@@ -301,27 +304,12 @@ export async function redirectController(req, res) {
     const longUrl = longUrlObtain.rows[0].longurl;
     console.log(longUrl); // output will be just the real url. no headers
 
-    res.redirect("https://" + longUrl);
-  } catch (error) {
-    res.status(500).json(error.message);
-  }
-}
-
-// Count visit number
-export async function counterController(req, res) {
-  try {
-    const { shorturl } = req.params;
     const updateCounter = await pool.query(
-      "UPDATE links SET visit_count = visit_count +1 WHERE shorturl = $1 RETURNING *",
+      "UPDATE links SET visit_count = visit_count + 1 WHERE shorturl = $1",
       [shorturl]
     );
 
-    const currentCounter = await pool.query(
-      "SELECT visit_count FROM links WHERE shorturl = $1",
-      [shorturl]
-    );
-
-    res.status(200).json(currentCounter.rows[0]);
+    res.redirect("https://" + longUrl);
   } catch (error) {
     res.status(500).json(error.message);
   }

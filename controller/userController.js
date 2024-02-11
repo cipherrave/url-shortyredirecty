@@ -241,7 +241,7 @@ export async function getAllUsers(req, res) {
 
     res.status(200).json(allUsers.rows);
   } catch (error) {
-    console.error(error.message);
+    res.status(500).json(error.message);
   }
 }
 
@@ -277,7 +277,7 @@ export async function updateUserAdmin(req, res) {
 
     // Update credentials based on user_id
     const updateUserAdmin = await pool.query(
-      "UPDATE users SET (username, email, password) = ($1, $2, $3) WHERE user_id= $4",
+      "UPDATE users SET (username, email, password) = ($1, $2, $3) WHERE user_id= $4 RETURNING *",
       [username, email, encryptedPassword, user_id]
     );
 
@@ -297,8 +297,8 @@ export async function updateUserAdmin(req, res) {
     };
 
     res.status(200).json(newUserData);
-  } catch (err) {
-    console.error(err.message);
+  } catch (error) {
+    res.status(500).json(error.message);
   }
 }
 
@@ -344,12 +344,12 @@ export async function updateUser(req, res) {
     };
 
     res.status(200).json(newUserData);
-  } catch (err) {
-    console.error(err.message);
+  } catch (error) {
+    res.status(500).json(error.message);
   }
 }
 
-// Delete own or other account - ADMIN
+// Delete own or other account - ADMIN.
 export async function deleteUserAdmin(req, res) {
   try {
     // Read data from token
@@ -361,7 +361,7 @@ export async function deleteUserAdmin(req, res) {
     );
     if (checkAdminId.rowCount === 0) {
       return res.status(404).json("Admin id not found. Not Authorized!");
-    }
+    } // Try to implement feature for not deleting other admin acoount or delete yourself
 
     const { email } = req.body;
     // Delete data from specified email
