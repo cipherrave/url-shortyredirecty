@@ -252,11 +252,14 @@ export async function redirectController(req, res) {
       "SELECT longUrl FROM links WHERE shorturl = $1",
       [shorturl]
     );
+    if (longUrlObtain.rowCount === 0) {
+      return res.status(404).json("Link not found");
+    }
 
     const longUrl = longUrlObtain.rows[0].longurl;
     console.log(longUrl); // output will be just the real url. no headers
 
-    res.redirect(longUrl);
+    res.redirect("https://" + longUrl);
   } catch (error) {
     res.status(500).json(error);
   }
