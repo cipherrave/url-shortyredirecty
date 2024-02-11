@@ -2,6 +2,7 @@ import express from "express";
 import dbInit from "./database/dbInit.js";
 import healthCheck from "./controller/healthCheck.js";
 import {
+  counterController,
   createLink,
   deleteOneLink,
   deleteOneLinkAdmin,
@@ -71,8 +72,7 @@ app.delete("/user/links/delete", isAuth, deleteOneLink);
 
 // Redirect route
 app.post("/:shorturl", redirectController);
-
-// Error route
+app.put("/:shotrturl", redirectController);
 
 //PORT
 app.listen(port, () => {

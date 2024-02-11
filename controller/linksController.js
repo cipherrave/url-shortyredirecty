@@ -188,7 +188,7 @@ export async function getOneLink(req, res) {
   }
 }
 
-// Update a user - USER
+// Update a link - USER
 export async function updateUser(req, res) {
   try {
     // Read data from token
@@ -302,6 +302,26 @@ export async function redirectController(req, res) {
     console.log(longUrl); // output will be just the real url. no headers
 
     res.redirect("https://" + longUrl);
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+}
+
+// Count visit number
+export async function counterController(req, res) {
+  try {
+    const { shorturl } = req.params;
+    const updateCounter = await pool.query(
+      "UPDATE links SET visit_count = visit_count +1 WHERE shorturl = $1 RETURNING *",
+      [shorturl]
+    );
+
+    const currentCounter = await pool.query(
+      "SELECT visit_count FROM links WHERE shorturl = $1",
+      [shorturl]
+    );
+
+    res.status(200).json(currentCounter.rows[0]);
   } catch (error) {
     res.status(500).json(error.message);
   }
