@@ -43,8 +43,8 @@ export async function createLink(req, res) {
     };
 
     res.json(apiResponse);
-  } catch (err) {
-    console.error(err.message);
+  } catch (error) {
+    res.status(500).json(error.message);
   }
 }
 
@@ -65,8 +65,8 @@ export async function getAllLinksAdmin(req, res) {
     // List all links in links table regardless of user
     const allLinks = await pool.query("SELECT * FROM links", []);
     res.json(allLinks.rows);
-  } catch (err) {
-    console.error(err.message);
+  } catch (error) {
+    res.status(500).json(error.message);
   }
 }
 
@@ -94,8 +94,8 @@ export async function getAllLinksOneUserAdmin(req, res) {
       return res.status(404).json("No links with specified user_id");
     }
     res.json(allLinks.rows);
-  } catch (err) {
-    console.error(err.message);
+  } catch (error) {
+    res.status(500).json(error.message);
   }
 }
 
@@ -123,8 +123,8 @@ export async function getAllLinks(req, res) {
     }
 
     res.json(allLinks.rows);
-  } catch (err) {
-    console.error(err.message);
+  } catch (error) {
+    res.status(500).json(error.message);
   }
 }
 
@@ -153,8 +153,8 @@ export async function getOneLinkAdmin(req, res) {
     }
 
     res.json(oneLink.rows[0]);
-  } catch (err) {
-    console.error(err.message);
+  } catch (error) {
+    res.status(500).json(error.message);
   }
 }
 
@@ -183,8 +183,50 @@ export async function getOneLink(req, res) {
     }
 
     res.json(oneLink.rows[0]);
-  } catch (err) {
-    console.error(err.message);
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+}
+
+// Update a user - USER
+export async function updateUser(req, res) {
+  try {
+    // Read data from token
+    const authData = req.user;
+    const user_id = authData.user_id;
+
+    // Check user id availability in token
+    const checkUserId = await pool.query(
+      "SELECT * FROM users WHERE user_id = $1",
+      [user_id]
+    );
+    if (checkUserId.rowCount === 0) {
+      return res.status(404).json("User id not found.");
+    }
+
+    const { link_id, longurl, shorturl } = req.body;
+
+    // Update links with user_id specified in token
+    const updateLink = await pool.query(
+      "UPDATE links SET (longurl, shorturl) = ($1, $2) WHERE link_id= $3",
+      [longurl, shorturl, link_id]
+    );
+
+    // Read back new data from user_id
+    const updateLinksRead = await pool.query(
+      "SELECT * FROM links WHERE link_id = $1",
+      [link_id]
+    );
+
+    const newLinkData = {
+      message: "Link data has been updated",
+      longurl: updateLinksRead.rows[0].longurl,
+      shorturl: updateLinksRead.rows[0].shorturl,
+    };
+
+    res.status(200).json(newLinkData);
+  } catch (error) {
+    res.status(500).json(error.message);
   }
 }
 
@@ -211,8 +253,8 @@ export async function deleteOneLinkAdmin(req, res) {
     }
 
     res.json("Link has been deleted");
-  } catch (err) {
-    console.error(err.message);
+  } catch (error) {
+    res.status(500).json(error.message);
   }
 }
 
@@ -239,8 +281,8 @@ export async function deleteOneLink(req, res) {
     }
 
     res.json("Link has been deleted");
-  } catch (err) {
-    console.error(err.message);
+  } catch (error) {
+    res.status(500).json(error.message);
   }
 }
 
@@ -261,6 +303,6 @@ export async function redirectController(req, res) {
 
     res.redirect("https://" + longUrl);
   } catch (error) {
-    res.status(500).json(error);
+    res.status(500).json(error.message);
   }
 }

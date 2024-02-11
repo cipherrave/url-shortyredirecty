@@ -16,7 +16,7 @@ export async function createUsersTable() {
 export async function createLinksTable() {
   try {
     const queryInit =
-      'CREATE TABLE IF NOT EXISTS "links" ( link_id TEXT UNIQUE PRIMARY KEY, longurl VARCHAR(255), shorturl VARCHAR(255), creation_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, user_id TEXT REFERENCES "users"(user_id) );';
+      'CREATE TABLE IF NOT EXISTS "links" ( link_id TEXT UNIQUE PRIMARY KEY, longurl VARCHAR(255), shorturl VARCHAR(255), creation_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, visit_count INTEGER,user_id TEXT REFERENCES "users"(user_id) );';
     await pool.query(queryInit);
     console.log("Links table created successfully");
   } catch (error) {
