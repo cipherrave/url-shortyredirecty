@@ -10,7 +10,7 @@ import {
   getAllLinksOneUserAdmin,
   getOneLink,
   getOneLinkAdmin,
-  redirectController,
+  updateLinkUser,
 } from "./controller/linksController.js";
 import dotenv from "dotenv";
 import {
@@ -24,7 +24,9 @@ import {
   loginUser,
   updateUser,
   updateUserAdmin,
+  validateAccount,
 } from "./controller/userController.js";
+import { redirectController } from "./controller/redirectController.js";
 import isAuth from "./utils/isAuth.js";
 
 const app = express();
@@ -42,6 +44,9 @@ dbInit();
 
 // Public Routes
 app.get("/health", healthCheck);
+
+// Validation Route
+app.get("/validate/:validation_key", validateAccount);
 
 // Admin Routes
 app.post("/register/admin", createAdmin);
@@ -67,6 +72,7 @@ app.delete("/admin/links/delete", isAuth, deleteOneLinkAdmin);
 app.post("/links/create", isAuth, createLink);
 app.get("/user/links", isAuth, getOneLink);
 app.get("/user/links/all", isAuth, getAllLinks);
+app.put("/user/links/update", isAuth, updateLinkUser);
 app.delete("/user/links/delete", isAuth, deleteOneLink);
 
 // Redirect route
