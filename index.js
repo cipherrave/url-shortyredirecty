@@ -28,6 +28,7 @@ import {
 } from "./controller/userController.js";
 import { redirectController } from "./controller/redirectController.js";
 import isAuth from "./utils/isAuth.js";
+import { errorPage, homePage } from "./controller/pageController.js";
 
 const app = express();
 //import links
@@ -38,9 +39,14 @@ const port = process.env.PORT;
 //MIDDLEWARE
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
 //INITIALIZE DATABASE
 dbInit();
+
+// Pages Routes
+app.get("/", homePage);
+app.get("/error", errorPage);
 
 // Public Routes
 app.get("/health", healthCheck);
