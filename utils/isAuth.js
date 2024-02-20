@@ -12,7 +12,7 @@ async function isAuth(req, res, next) {
       return res.status(401).json({ message: "not authenticated" });
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decoded);
+    //console.log(decoded);
     // IMPORTANT: this is how you pass data from middleware to the next function
     req.user = decoded;
     next();

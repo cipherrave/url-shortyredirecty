@@ -2,6 +2,8 @@ import pool from "../database/connection.js";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import fs from "fs";
+import fastcsv from "fast-csv";
 
 // Create an ADMIN
 export async function createAdmin(req, res) {
@@ -9,6 +11,8 @@ export async function createAdmin(req, res) {
     // Generate unique user id and validation key using nanoid
     let generatedID = nanoid();
     const user_id = generatedID;
+
+    // Generate validation key that will be sent via email worker
     let generatedValidationKey = nanoid();
     const validation_key = generatedValidationKey;
 
@@ -37,8 +41,6 @@ export async function createAdmin(req, res) {
           validated,
         ]
       );
-
-      // Send validation key to email worker
 
       // Generate a response
       const apiResponse = {
@@ -277,6 +279,8 @@ export async function getOneUser(req, res) {
     // Read data from token
     const authData = req.user;
     const admin_id = authData.admin_id;
+    const { generateCSV } = req.body;
+    const ws = fs.createWriteStream("user_data_admin.csv");
 
     // Check admin id availability in token
     const checkAdminId = await pool.query(
@@ -293,9 +297,22 @@ export async function getOneUser(req, res) {
       ]);
       if (oneUser.rowCount === 0) {
         return res.status(401).json("User account not found");
-      }
+      } else {
+        if (generateCSV === false) {
+          console.log("CSV not generated.");
+          return res.json(oneUser.rows);
+        } else if (generateCSV === true) {
+          const jsonData = JSON.parse(JSON.stringify(oneUser.rows));
 
-      res.status(200).json(oneUser.rows[0]);
+          fastcsv.write(jsonData, { headers: true }).pipe(ws);
+          console.log("user_data_admin.csv generated");
+          return res.json(oneUser.rows);
+        } else {
+          return res.json(
+            "Do you want to generate CSV file as a report? Type false or true without the quotation mark"
+          );
+        }
+      }
     }
   } catch (error) {
     res.status(500).json(error.message);
@@ -308,6 +325,8 @@ export async function getAllUsers(req, res) {
     // Read data from token
     const authData = req.user;
     const admin_id = authData.admin_id;
+    const { generateCSV } = req.body;
+    const ws = fs.createWriteStream("all_users_admin.csv");
 
     // Check admin id availability in token
     const checkAdminId = await pool.query(
@@ -320,7 +339,20 @@ export async function getAllUsers(req, res) {
       // Query to list all users in database
       const allUsers = await pool.query("SELECT * FROM users");
 
-      res.status(200).json(allUsers.rows);
+      if (generateCSV === false) {
+        console.log("CSV not generated.");
+        return res.json(allUsers.rows);
+      } else if (generateCSV === true) {
+        const jsonData = JSON.parse(JSON.stringify(allUsers.rows));
+
+        fastcsv.write(jsonData, { headers: true }).pipe(ws);
+        console.log("all_users_admin.csv generated");
+        return res.json(allUsers.rows);
+      } else {
+        return res.json(
+          "Do you want to generate CSV file as a report? Type false or true without the quotation mark"
+        );
+      }
     }
   } catch (error) {
     res.status(500).json(error.message);

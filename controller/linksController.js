@@ -1,5 +1,7 @@
 import pool from "../database/connection.js";
 import { nanoid } from "nanoid";
+import fs from "fs";
+import fastcsv from "fast-csv";
 
 //Create a link
 export async function createLink(req, res) {
@@ -61,6 +63,9 @@ export async function getAllLinksAdmin(req, res) {
     // Read admin_id data from token
     const authData = req.user;
     const admin_id = authData.admin_id;
+    const { generateCSV } = req.body;
+    const ws = fs.createWriteStream("all_links_admin.csv");
+
     const checkAdminID = await pool.query(
       "SELECT * FROM users WHERE admin_id=$1",
       [admin_id]
@@ -69,8 +74,23 @@ export async function getAllLinksAdmin(req, res) {
       return res.status(404).json("Admin id not found. Not authorized!");
     } else {
       // List all links in links table regardless of user
-      const allLinks = await pool.query("SELECT * FROM links", []);
-      res.json(allLinks.rows);
+      const allLinks = await pool.query("SELECT * FROM links");
+
+      // Generate CSV file
+      if (generateCSV === false) {
+        console.log("CSV not generated.");
+        return res.json(allLinks.rows);
+      } else if (generateCSV === true) {
+        const jsonData = JSON.parse(JSON.stringify(allLinks.rows));
+
+        fastcsv.write(jsonData, { headers: true }).pipe(ws);
+        console.log("all_links_admin.csv generated");
+        return res.json(allLinks.rows);
+      } else {
+        return res.json(
+          "Do you want to generate CSV file as a report? Type false or true without the quotation mark"
+        );
+      }
     }
   } catch (error) {
     res.status(500).json(error.message);
@@ -83,6 +103,10 @@ export async function getAllLinksOneUserAdmin(req, res) {
     // Read admin_id data from token
     const authData = req.user;
     const admin_id = authData.admin_id;
+    const { user_id } = req.body;
+    const { generateCSV } = req.body;
+    const ws = fs.createWriteStream("all_links_one_user_admin.csv");
+
     const checkAdminID = await pool.query(
       "SELECT * FROM users WHERE admin_id=$1",
       [admin_id]
@@ -91,7 +115,6 @@ export async function getAllLinksOneUserAdmin(req, res) {
       return res.status(404).json("Admin id not found. Not authorized!");
     } else {
       // List all links in links table from one user
-      const { user_id } = req.body;
       const allLinks = await pool.query(
         "SELECT * FROM links WHERE user_id = $1",
         [user_id]
@@ -99,7 +122,21 @@ export async function getAllLinksOneUserAdmin(req, res) {
       if (allLinks.rowCount === 0) {
         return res.status(404).json("No links with specified user_id");
       }
-      res.json(allLinks.rows);
+      // Generate CSV file
+      if (generateCSV === false) {
+        console.log("CSV not generated.");
+        return res.json(allLinks.rows);
+      } else if (generateCSV === true) {
+        const jsonData = JSON.parse(JSON.stringify(allLinks.rows));
+
+        fastcsv.write(jsonData, { headers: true }).pipe(ws);
+        console.log("all_links_one_user_admin.csv generated");
+        return res.json(allLinks.rows);
+      } else {
+        return res.json(
+          "Do you want to generate CSV file as a report? Type false or true without the quotation mark"
+        );
+      }
     }
   } catch (error) {
     res.status(500).json(error.message);
@@ -112,6 +149,9 @@ export async function getAllLinks(req, res) {
     // Read user_id data from token
     const authData = req.user;
     const user_id = authData.user_id;
+    const { generateCSV } = req.body;
+    const ws = fs.createWriteStream("all_your_links_user.csv");
+
     const checkUserID = await pool.query(
       "SELECT * FROM users WHERE user_id=$1",
       [user_id]
@@ -127,7 +167,21 @@ export async function getAllLinks(req, res) {
       if (allLinks.rowCount === 0) {
         return res.status(404).json("No links with specified user_id");
       } else {
-        res.json(allLinks.rows);
+        // Generate CSV file
+        if (generateCSV === false) {
+          console.log("CSV not generated.");
+          return res.json(allLinks.rows);
+        } else if (generateCSV === true) {
+          const jsonData = JSON.parse(JSON.stringify(allLinks.rows));
+
+          fastcsv.write(jsonData, { headers: true }).pipe(ws);
+          console.log("all_your_links_user.csv generated");
+          return res.json(allLinks.rows);
+        } else {
+          return res.json(
+            "Do you want to generate CSV file as a report? Type false or true without the quotation mark"
+          );
+        }
       }
     }
   } catch (error) {
@@ -141,6 +195,9 @@ export async function getOneLinkAdmin(req, res) {
     // Read admin_id from token
     const authData = req.user;
     const admin_id = authData.admin_id;
+    const { generateCSV } = req.body;
+    const ws = fs.createWriteStream("one_link_admin.csv");
+
     const checkAdminID = await pool.query(
       "SELECT * FROM users WHERE admin_id=$1",
       [admin_id]
@@ -155,9 +212,23 @@ export async function getOneLinkAdmin(req, res) {
         [shorturl]
       );
       if (oneLink.rowCount === 0) {
-        return res.status(404).json("No link with specified user_id");
+        return res.status(404).json("No link with specified shorturl");
       } else {
-        res.json(oneLink.rows[0]);
+        // Generate CSV file
+        if (generateCSV === false) {
+          console.log("CSV not generated.");
+          return res.json(oneLink.rows);
+        } else if (generateCSV === true) {
+          const jsonData = JSON.parse(JSON.stringify(oneLink.rows));
+
+          fastcsv.write(jsonData, { headers: true }).pipe(ws);
+          console.log("one_link_admin.csv generated");
+          return res.json(oneLink.rows);
+        } else {
+          return res.json(
+            "Do you want to generate CSV file as a report? Type false or true without the quotation mark"
+          );
+        }
       }
     }
   } catch (error) {
@@ -171,6 +242,9 @@ export async function getOneLink(req, res) {
     // Read user_id data from token
     const authData = req.user;
     const user_id = authData.user_id;
+    const { generateCSV } = req.body;
+    const ws = fs.createWriteStream("one_link_user.csv");
+
     const checkUserID = await pool.query(
       "SELECT * FROM users WHERE user_id=$1",
       [user_id]
@@ -186,7 +260,23 @@ export async function getOneLink(req, res) {
       );
       if (oneLink.rowCount === 0) {
         return res.status(404).json("No link with specified short url");
-      } else res.json(oneLink.rows[0]);
+      } else {
+        // Generate CSV file
+        if (generateCSV === false) {
+          console.log("CSV not generated.");
+          return res.json(oneLink.rows);
+        } else if (generateCSV === true) {
+          const jsonData = JSON.parse(JSON.stringify(oneLink.rows));
+
+          fastcsv.write(jsonData, { headers: true }).pipe(ws);
+          console.log("one_link_user.csv generated");
+          return res.json(oneLink.rows);
+        } else {
+          return res.json(
+            "Do you want to generate CSV file as a report? Type false or true without the quotation mark"
+          );
+        }
+      }
     }
   } catch (error) {
     res.status(500).json(error.message);
