@@ -1,32 +1,14 @@
 import express from "express";
 import dbInit from "./database/dbInit.js";
 import healthCheck from "./controller/healthCheck.js";
-import {
-  createLink,
-  deleteOneLink,
-  deleteOneLinkAdmin,
-  getAllLinks,
-  getAllLinksAdmin,
-  getAllLinksOneUserAdmin,
-  getOneLink,
-  getOneLinkAdmin,
-  updateLinkUser,
-} from "./controller/linksController.js";
 import dotenv from "dotenv";
 import {
-  createAdmin,
   createUser,
-  deleteUser,
-  deleteUserAdmin,
-  getAllUsers,
-  getOneUser,
-  loginAdmin,
   loginUser,
   updateUser,
-  updateUserAdmin,
+  deleteUser,
   validateAccount,
 } from "./controller/userController.js";
-import { redirectController } from "./controller/redirectController.js";
 import isAuth from "./utils/isAuth.js";
 import { errorPage, homePage } from "./controller/pageController.js";
 
